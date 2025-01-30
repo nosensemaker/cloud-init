@@ -42,14 +42,14 @@ Instala pacotes.
 Este módulo pode ser executado para instalar pacotes que você definiu, como servidores web, bibliotecas, etc.
 
 
-6️⃣ timezone
+6.0 timezone
 
 Configura o fuso horário.
 
 Definido após a instalação de pacotes para garantir que a configuração da data/hora ocorra depois da instalação.
 
 
-7️⃣ final_message
+7.0 final_message
 
 Exibe uma mensagem quando o Cloud-Init terminar sua execução.
 
