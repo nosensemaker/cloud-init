@@ -36,14 +36,6 @@ runcmd:
 
 
 write_files:
-  - path: /etc/php/7.4/apache2/php.ini
-    content: |
-      post_max_size = 100M
-      upload_max_filesize = 100M
-      max_execution_time = 7200
-      memory_limit = 512M
-      date.timezone = UTC
-
   - path: /var/www/html/syspass/install-composer.sh
     content: |
       #!/bin/sh
