@@ -1,0 +1,87 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+
+apt:
+  sources:
+    ondrej-php.list:
+      source: "ppa:ondrej/php"
+
+packages:
+  - apache2
+  - mariadb-server
+  - software-properties-common
+  - ca-certificates
+  - lsb-release
+  - apt-transport-https
+  - libapache2-mod-php7.4
+  - php7.4
+  - php7.4-mysqli
+  - php7.4-pdo
+  - php7.4-cgi
+  - php7.4-cli
+  - php7.4-common
+  - php7.4-gd
+  - php7.4-json
+  - php7.4-readline
+  - php7.4-curl
+  - php7.4-intl
+  - php7.4-ldap
+  - php7.4-xml
+  - php7.4-mbstring
+  - git
+
+  - path: /etc/apache2/sites-available/syspass.conf
+    content: |
+      <VirtualHost *:80>
+          ServerAdmin admin@localhost
+          DocumentRoot "/var/www/html/syspass"
+          ServerName syspass.example.com
+
+          <Directory "/var/www/html/syspass/">
+              Options MultiViews FollowSymlinks
+              AllowOverride All
+              Require all granted
+          </Directory>
+
+          TransferLog /var/log/apache2/syspass_access.log
+          ErrorLog /var/log/apache2/syspass_error.log
+      </VirtualHost>
+  - path: /var/www/html/syspass/install-composer.sh
+    permissions: '0755'
+    content: |
+      #!/bin/sh
+      EXPECTED_SIGNATURE="$(wget -q -O - https://composer.github.io/installer.sig)"
+      php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+      ACTUAL_SIGNATURE="$(php -r "echo hash_file('sha384', 'composer-setup.php');")"
+
+      if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]
+      then
+        >&2 echo 'ERROR: Invalid installer signature'
+        rm composer-setup.php
+        exit 1
+      fi
+
+      php composer-setup.php --quiet
+      RESULT=$?
+      rm composer-setup.php
+      exit $RESULT
+
+runcmd:
+  - sudo sed -i 's/^post_max_size = .*/post_max_size = 100M/' /etc/php/7.4/apache2/php.ini
+  - sudo sed -i 's/^upload_max_filesize = .*/upload_max_filesize = 100M/' /etc/php/7.4/apache2/php.ini
+  - sudo sed -i 's/^max_execution_time = .*/max_execution_time = 7200/' /etc/php/7.4/apache2/php.ini
+  - sudo sed -i 's/^memory_limit = .*/memory_limit = 512M/' /etc/php/7.4/apache2/php.ini
+  - sudo sed -i 's/^date.timezone = .*/date.timezone = UTC/' /etc/php/7.4/apache2/php.ini
+  - systemctl restart apache2
+  - mysql_secure_installation
+  - mysql -u root -p -e "CREATE DATABASE syspassdb; GRANT ALL PRIVILEGES ON syspassdb.* TO 'syspassuser'@'localhost' IDENTIFIED BY 'password'; FLUSH PRIVILEGES;"
+  - mysql -u root -p -e "CREATE USER 'name'@'%' IDENTIFIED BY 'password'; GRANT ALL PRIVILEGES ON syspassdb.* TO 'name'@'%'; FLUSH PRIVILEGES;"
+  - git clone https://github.com/nuxsmin/sysPass.git /var/www/html/syspass
+  - chown -R www-data:www-data /var/www/html/syspass
+  - chmod 750 /var/www/html/syspass/app/{config,backup}
+  - cd /var/www/html/syspass && sh install-composer.sh
+  - php /var/www/html/syspass/composer.phar install --no-dev
+  - a2ensite syspass
+  - systemctl reload apache2
