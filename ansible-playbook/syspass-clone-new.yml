@@ -1,0 +1,37 @@
+---
+- name: Clone a New VM from Template
+  hosts: proxmox
+  become: true
+  tasks:
+    - name: Cloning Template for a new VM
+      community.general.proxmox_kvm:
+        api_host: "{{ host_api }}"
+        api_port: "{{ port_api }}"
+        api_user: "{{ user_api }}"
+        api_password: "{{ pass_api }}"
+        validate_certs: false
+        node: "proxmox2"
+        full: true
+        storage: "snip"
+        clone: "VM 9000"
+        vmid: 9000
+        newid: "{{ newid_api }}"
+        name: "{{ name_api }}"
+      timeout: 600
+
+    - name: Configuring a new IP to VM
+      ansible.builtin.command:
+        cmd: "qm set 261 --ipconfig0 ip=192.168.17.178/24,gw=192.168.17.1"
+      register: myoutput
+      changed_when: myoutput.rc != 0
+
+    - name: Starting VM
+      community.general.proxmox_kvm:
+        node: "proxmox2"
+        api_host: "{{ host_api }}"
+        api_port: "{{ port_api }}"
+        api_user: "{{ user_api }}"
+        api_password: "{{ pass_api }}"
+        newid: "{{ newid_api }}"
+        name: "{{ name_api }}"
+        state: started
