@@ -1,13 +1,24 @@
-** Para usar o Arquivo de Configuração do Cloud init **
+# Guia de Configuração do Cloud-Init
 
-1 - Crie um arquivo de configuração no caminho /snip/snippets/ com o nome que preferir mas extensão .yml
+Para criar um arquivo de configuração personalizado e vinculá-lo a um template de VM, garantindo que as configurações desejadas sejam aplicadas automaticamente no momento da inicialização.
 
-    $ vim custom.yml
+## **Pré-requisitos**
 
-2 - Coloque o conteúdo do arquvio de configuraçã dentro.
+- Um template de VM já criado para utilizar o Cloud-Init.
 
-exemplo: 
+---
 
+## **Passo 1: Criar o arquivo de configuração**
+
+Crie um arquivo de configuração no diretório `/snip/snippets/`, utilizando qualquer nome, mas com a extensão `.yml`:
+
+```bash
+vim /snip/snippets/custom.yml
+```
+
+Adicione o conteúdo de configuração desejado no arquivo. Abaixo está um exemplo:
+
+```yaml
 #cloud-config
 hostname: teste
 manage_etc_hosts: true
@@ -39,15 +50,69 @@ runcmd:
   - systemctl enable apache2
   - echo "Bem-vindo, Mestre!" > /home/manager/boas-vindas.txt
   - apt purge -y cloud-init && rm -rf /etc/cloud /var/lib/cloud
+```
 
-3 - Faça o QM selecionar o arquivo de configuração novo para o template criado para o cloud-init rodar.
+---
 
-    $ qm set 9000 --cicustom "user=snip:snippets/custom.yml"
+## **Passo 2: Configurar o Template para Utilizar o Arquivo Cloud-Init**
 
-apos o set vai o ID do TEMPLATE
-entre aspas é o caminho para o arquivo
+Agora, vincule o arquivo de configuração ao template de VM no Proxmox. Utilize o comando abaixo, substituindo `9000` pelo ID do template:
 
-4 - Agora clone o template para a criação da nova VM, e a inicie: no momento em que a VM é iniciada, o cloud init já começa a rodar o arquivo de configuração configurado. 
+```bash
+qm set 9000 --cicustom "user=snip:snippets/custom.yml"
+```
 
+**Explicação:**  
+- `qm set 9000`: Define as configurações da VM de ID 9000.  
+- `--cicustom "user=snip:snippets/custom.yml"`: Especifica o caminho do arquivo de configuração do Cloud-Init.  
+
+---
+
+## **Passo 3: Clonar e Iniciar a VM**
+
+Após definir o arquivo Cloud-Init no template, clone o template para criar uma nova VM e inicie-a.
+
+**⚠️ Importante:** Antes de iniciar a VM, é necessário modificar o IP e o Gateway no Playbook ou manualmente, pois sem essa configuração o Cloud-Init não funcionará corretamente.
+
+### **Opção 1: Clonar via Playbook Ansible**
+
+Caso utilize o Ansible para gerenciar suas VMs, execute o seguinte Playbook para clonar a VM automaticamente:
+
+📌 **Link do Playbook:** [Clone VM Playbook](https://github.com/nosensemaker/cloud-init/blob/main/ansible/roles/clone-newvm.yml)
+
+```bash
+ansible-playbook ~/roles/clone-newvm.yml
+```
+
+### **Opção 2: Clonar Manualmente**
+
+Se preferir clonar a VM manualmente, utilize os comandos abaixo:
+
+```bash
+qm clone 9000 100 --name minha-vm
+```
+
+Configure o IP e o Gateway da nova VM:
+
+```bash
+qm set 100 --ipconfig0 ip=192.168.17.178/24,gw=192.168.17.1
+```
+
+Inicie a VM recém-criada:
+
+```bash
+qm start 100
+```
+
+**Explicação:**  
+- `qm clone 9000 100 --name minha-vm`: Clona o template `9000` para criar a VM `100`.  
+- `qm set 100 --ipconfig0 ip=192.168.17.178/24,gw=192.168.17.1`: Define o IP e Gateway da nova VM.  
+- `qm start 100`: Inicia a VM recém-criada.  
+
+Quando a VM for iniciada, o **Cloud-Init** aplicará automaticamente as configurações especificadas no arquivo YAML.  
+
+Caso precise modificar as configurações, edite o arquivo `custom.yml` e relacione-o novamente ao template utilizando o comando `qm set`.   
+
+---
 
 
