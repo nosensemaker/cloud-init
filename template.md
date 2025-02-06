@@ -29,7 +29,7 @@ qm create 9000 --memory 2048 --net0 virtio,bridge=vmbr0 --scsihw virtio-scsi-pci
 ## 5. Import the Downloaded Disk to Local Storage
 
 ```bash
-qm set 9000 --scsi0 local-lvm:0,import-from=/path/to/bionic-server-cloudimg-amd64.img from=/root/img/image
+qm set 9000 --scsi0 local-lvm:0,import-from=/path/to/jammy-server-cloudimg-amd64.img from=/root/img/image
 ```
 
 ## 6. Configure a CD-ROM Drive for Cloud-Init
@@ -49,6 +49,12 @@ qm set 9000 --boot order=scsi0
 ```bash
 qm set 9000 --serial0 socket --vga serial0
 ```
+
+## 9 Set Name for VM
+
+```bash
+qm set 9000 --name <string>
+``
 
 ## 9. Convert the VM into a Template
 
