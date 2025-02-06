@@ -1,5 +1,47 @@
 ** Para usar o Arquivo de Configuração do Cloud init **
 
-1 - Crie um Arquivo de Configuração no caminho /snip/snippets/ 
+1 - Crie um arquivo de configuração no caminho /snip/snippets/ com o nome que preferir mas extensão .yml
 
-  vim 
+    $ vim custom.yml
+
+2 - Coloque o conteúdo do arquvio de configuraçã dentro.
+
+exemplo: 
+
+#cloud-config
+hostname: teste
+manage_etc_hosts: true
+fqdn: teste
+chpasswd:
+  expire: False
+user: manager
+password: $5$mnijLZ8G$VEJPtAKycY8dnwZFbC3P4BjlV93E6x.Qrmts0Wg6k79
+chpasswd:
+  expire: False
+users:
+  - default
+  - name: manager
+    groups: sudo
+    shell: /bin/bash
+    ssh-authorized-keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILILsFnLTU/u6PNNyZO/NGKjKcvTNLDGfKDXmMYQ29e+ manager@gunserver"
+package_reboot_if_required: true
+packages:
+  - vim
+  - git
+  - qemu-guest-agent
+  - apache2
+
+runcmd:
+  - systemctl start qemu-guest-agent
+  - systemctl enable qemu-guest-agent
+
+  - wget https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.9.2-1_amd64.deb
+  - sudo WAZUH_MANAGER='192.168.17.176' dpkg -i ./wazuh-agent_4.9.2-1_amd64.deb
+
+  - systemctl daemon-reload || echo "erro no daemon"
+  - systemctl enable wazuh-agent || echo "Erro ao habilitar o Wazuh Agent"
+  - systemctl start wazuh-agent || echo "Erro ao iniciar o Wazuh Agent"
+
+  - echo "Bem-vindo, Mestre!" > /home/manager/boas-vindas.txt
+
