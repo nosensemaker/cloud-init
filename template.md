@@ -4,6 +4,11 @@
 
 Go to **Storage** in **PROXMOX** and add a new directory:
 
+```bash
+Go to Datacenter (proxmox) > Storage > Add > Directory
+```
+Set the configuration: 
+
 - **ID**: snip  
 - **Directory**: snip  
 - **Content**: Snippets  
