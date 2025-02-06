@@ -59,17 +59,26 @@ qm set 9000 --serial0 socket --vga serial0
 
 ```bash
 qm set 9000 --name <string>
-``
+```
 
-## 9. Convert the VM into a Template
+## 9.1 Convert the VM into a Template
 
 ```bash
 qm template 9000
 ```
 
-## 10. Enable QEMU Guest Agent
+## 10. Enable QEMU Guest Agent 
 
+```bash
 Go to **Options > QEMU Guest Agent** and enable it.
+```
+
+## 10.1 Set USER and Password in Cloud-Init ON PROXMOX SERVER WEB
+
+```bash
+Go to **Template VM > Cloud-init > Set User
+Go to **Template VM > CLoud-init > Set Password
+``
 
 ## 11. Default Cloud-Init Configuration
 
