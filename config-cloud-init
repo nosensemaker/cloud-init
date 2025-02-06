@@ -1,1 +1,5 @@
-para usar 
+** Para usar o Arquivo de Configuração do Cloud init **
+
+1 - Crie um Arquivo de Configuração no caminho /snip/snippets/ 
+
+  vim 
