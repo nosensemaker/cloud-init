@@ -1,0 +1,32 @@
+#cloud-config
+hostname: teste
+manage_etc_hosts: true
+fqdn: teste
+chpasswd:
+  expire: False
+user: manager
+password: $5$mnijLZ8G$VEJPtAKycY8dnwZFbC3P4BjlV93E6x.Qrmts0Wg6k79
+chpasswd:
+  expire: False
+users:
+  - default
+  - name: manager
+    groups: sudo
+    shell: /bin/bash
+    ssh-authorized-keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILILsFnLTU/u6PNNyZO/NGKjKcvTNLDGfKDXmMYQ29e+ manager@gunserver"
+package_reboot_if_required: true
+packages:
+  - vim
+  - git
+  - qemu-guest-agent
+  - apache2
+
+runcmd:
+  - systemctl start qemu-guest-agent
+  - systemctl enable qemu-guest-agent
+  - systemctl start apache2
+  - systemctl enable apache2
+
+  - echo "Bem-vindo, Mestre!" > /home/manager/boas-vindas.txt
+  - apt purge -y cloud-init && rm -rf /etc/cloud /var/lib/cloud
