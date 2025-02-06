@@ -2,7 +2,7 @@
 
 ## 1. Configure Storage
 
-Go to **Storage** in **PROXMOX** and add a new directory:
+Go to **Storage** in **PROXMOX WEB** and add a new directory:
 
 ```bash
 Go to Datacenter (proxmox) > Storage > Add > Directory
@@ -13,7 +13,7 @@ Set the configuration:
 - **Directory**: snip  
 - **Content**: Snippets  
 
-## 2. Install Cloud-Init on PROXMOX SERVER
+## 2. Install Cloud-Init on **PROXMOX SERVER**
 
 ```bash
 apt install cloud-init
@@ -67,18 +67,18 @@ qm set 9000 --name <string>
 qm template 9000
 ```
 
-## 10. Enable QEMU Guest Agent 
+## 10. Enable QEMU Guest Agent ON **PROXMOX WEB** 
 
 ```bash
 Go to **Options > QEMU Guest Agent** and enable it.
 ```
 
-## 10.1 Set USER and Password in Cloud-Init ON PROXMOX SERVER WEB
+## 10.1 Set USER and Password in Cloud-Init ON **PROXMOX WEB**
 
 ```bash
 Go to **Template VM > Cloud-init > Set User
 Go to **Template VM > CLoud-init > Set Password
-``
+```
 
 ## 11. Default Cloud-Init Configuration
 
