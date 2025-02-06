@@ -35,13 +35,19 @@ packages:
 runcmd:
   - systemctl start qemu-guest-agent
   - systemctl enable qemu-guest-agent
-
-  - wget https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.9.2-1_amd64.deb
-  - sudo WAZUH_MANAGER='192.168.17.176' dpkg -i ./wazuh-agent_4.9.2-1_amd64.deb
-
-  - systemctl daemon-reload || echo "erro no daemon"
-  - systemctl enable wazuh-agent || echo "Erro ao habilitar o Wazuh Agent"
-  - systemctl start wazuh-agent || echo "Erro ao iniciar o Wazuh Agent"
-
+  - systemctl start apache2
+  - systemctl enable apache2
   - echo "Bem-vindo, Mestre!" > /home/manager/boas-vindas.txt
+  - apt purge -y cloud-init && rm -rf /etc/cloud /var/lib/cloud
+
+3 - Faça o QM selecionar o arquivo de configuração novo para o template criado para o cloud-init rodar.
+
+    $ qm set 9000 --cicustom "user=snip:snippets/custom.yml"
+
+apos o set vai o ID do TEMPLATE
+entre aspas é o caminho para o arquivo
+
+4 - Agora clone o template para a criação da nova VM, e a inicie: no momento em que a VM é iniciada, o cloud init já começa a rodar o arquivo de configuração configurado. 
+
+
 
