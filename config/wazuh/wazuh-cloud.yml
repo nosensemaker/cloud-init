@@ -1,0 +1,50 @@
+#cloud-config
+hostname: teste
+manage_etc_hosts: true
+fqdn: teste
+chpasswd:
+  expire: False
+user: manager
+password: $5$mnijLZ8G$VEJPtAKycY8dnwZFbC3P4BjlV93E6x.Qrmts0Wg6k79
+chpasswd:
+  expire: False
+users:
+  - default
+  - name: manager
+    groups: sudo
+    shell: /bin/bash
+    ssh-authorized-keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILILsFnLTU/u6PNNyZO/NGKjKcvTNLDGfKDXmMYQ29e+ manager@gunserver"
+package_reboot_if_required: true
+packages:
+  - vim
+  - git
+  - qemu-guest-agent
+  - apache2
+
+runcmd:
+  # Habilitar o QEMU Guest Agent
+  - systemctl start qemu-guest-agent
+  - systemctl enable qemu-guest-agent
+
+  # Importar a chave GPG do Wazuh
+  - curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | apt-key add - || echo "Erro ao importar a chave GPG"
+
+  # Adicionar o repositório do Wazuh
+  - echo "deb https://packages.wazuh.com/4.x/apt/ stable main" > /etc/apt/sources.list.d/wazuh.list
+
+  # Atualizar e instalar o Wazuh Agent
+  - apt-get update || echo "Erro ao atualizar os pacotes"
+  - apt-get install wazuh-agent -y || echo "Erro ao instalar o Wazuh Agent"
+
+# Configurar o IP do Wazuh Manager
+  - sed -i 's|<address>MANAGER_IP</address>|<address>192.168.17.176</address>|g' /var/ossec/etc/ossec.conf
+
+  # Configurar e iniciar o serviço do Wazuh Agent
+  - systemctl enable wazuh-agent || echo "Erro ao habilitar o Wazuh Agent"
+  - systemctl start wazuh-agent || echo "Erro ao iniciar o Wazuh Agent"
+
+  # Mensagem de boas-vindas
+  - echo "Bem-vindo, Mestre!" > /home/manager/boas-vindas.txt
+
+  - apt purge -y cloud-init && rm -rf /etc/cloud /var/lib/cloud
