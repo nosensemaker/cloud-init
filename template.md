@@ -17,7 +17,7 @@ apt install cloud-init
 ## 3. Download the Image
 
 ```bash
-wget https://cloud-images.ubuntu.com/
+wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
 ```
 
 ## 4. Create a New VM with VirtIO SCSI Controller
