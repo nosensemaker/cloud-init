@@ -1,0 +1,8 @@
+# Passo a Passo para usar o cloud init
+
+1 - Instalar Cloud Init
+2 - Faça o Download de uma Image compativel com Cloud Init
+3 - Cria uma nova VM
+4 - Transforma em Template do Proxmox
+5 - Ative o Agent convidado
+6 - 
