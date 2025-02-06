@@ -13,7 +13,7 @@ Set the configuration:
 - **Directory**: snip  
 - **Content**: Snippets  
 
-## 2. Install Cloud-Init
+## 2. Install Cloud-Init on PROXMOX SERVER
 
 ```bash
 apt install cloud-init
