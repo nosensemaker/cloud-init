@@ -65,6 +65,4 @@ Configura chaves SSH para os usuários criados.
 
 ---
 
-## **Referências**
-
 
