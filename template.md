@@ -2,7 +2,7 @@
 
 ## 1. Configure Storage
 
-Go to **Storage** and add a new directory:
+Go to **Storage** in **PROXMOX** and add a new directory:
 
 - **ID**: snip  
 - **Directory**: snip  
