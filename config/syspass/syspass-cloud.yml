@@ -1,0 +1,120 @@
+#cloud-config
+hostname: teste
+manage_etc_hosts: true
+fqdn: teste
+chpasswd:
+  expire: False
+user: manager
+password: $5$mnijLZ8G$VEJPtAKycY8dnwZFbC3P4BjlV93E6x.Qrmts0Wg6k79
+chpasswd:
+  expire: False
+users:
+  - default
+  - name: manager
+    groups: sudo
+    shell: /bin/bash    
+    ssh-authorized-keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILILsFnLTU/u6PNNyZO/NGKjKcvTNLDGfKDXmMYQ29e+ manager@gunserver"
+package_reboot_if_required: true
+apt:
+  sources:
+    ondrej-php.list:
+      source: "ppa:ondrej/php"
+package_update: true
+packages:
+  - vim
+  - git
+  - apache2
+  - mariadb-server
+  - software-properties-common
+  - ca-certificates
+  - lsb-release
+  - apt-transport-https
+  - libapache2-mod-php7.4
+  - php7.4
+  - php7.4-mysql
+  - php7.4-cgi
+  - php7.4-cli
+  - php7.4-common
+  - php7.4-gd
+  - php7.4-json
+  - php7.4-readline
+  - php7.4-curl
+  - php7.4-intl
+  - php7.4-ldap
+  - php7.4-xml
+  - php7.4-mbstring
+
+write_files:
+  - path: /etc/apache2/sites-available/syspass.conf
+    content: |
+      <VirtualHost *:80>
+          ServerAdmin admin@localhost
+          DocumentRoot "/var/www/html/syspass"
+          ServerName syspass.example.com
+
+          <Directory "/var/www/html/syspass/">
+              Options MultiViews FollowSymlinks
+              AllowOverride All
+              Require all granted
+          </Directory>
+
+          TransferLog /var/log/apache2/syspass_access.log
+          ErrorLog /var/log/apache2/syspass_error.log
+      </VirtualHost>
+  - path: /home/manager/install-composer.sh
+    permissions: '0755'
+    content: |
+      #!/bin/sh
+      EXPECTED_SIGNATURE="$(wget -q -O - https://composer.github.io/installer.sig)"
+      php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+      ACTUAL_SIGNATURE="$(php -r "echo hash_file('sha384', 'composer-setup.php');")"
+
+      if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]
+      then
+        >&2 echo 'ERROR: Invalid installer signature'
+        rm composer-setup.php
+        exit 1
+      fi
+
+      php composer-setup.php --quiet
+      RESULT=$?
+      rm composer-setup.php
+      exit $RESULT
+
+runcmd:
+  - sed -i 's/^post_max_size = .*/post_max_size = 100M/' /etc/php/7.4/apache2/php.ini
+  - sed -i 's/^upload_max_filesize = .*/upload_max_filesize = 100M/' /etc/php/7.4/apache2/php.ini
+  - sed -i 's/^max_execution_time = .*/max_execution_time = 7200/' /etc/php/7.4/apache2/php.ini
+  - sed -i 's/^memory_limit = .*/memory_limit = 512M/' /etc/php/7.4/apache2/php.ini
+  - systemctl restart apache2
+  - mysql_secure_installation <<EOF
+  - '12345678'
+  - n
+  - n
+  - y
+  - y
+  - y
+  - y
+  - EOF
+  - mysql <<EOF
+  - CREATE DATABASE syspassdb;
+  - GRANT ALL PRIVILEGES ON syspassdb.* TO 'syspassuser'@'localhost' IDENTIFIED BY '12345678';
+  - FLUSH PRIVILEGES;
+  - EXIT
+  - EOF
+  - git clone https://github.com/nuxsmin/sysPass.git /var/www/html/syspass
+  - chown -R www-data:www-data /var/www/html/syspass
+  - chmod 750 /var/www/html/syspass/app/config
+  - chmod 750 /var/www/html/syspass/app/backup
+  - mv /home/manager/install-composer.sh /var/www/html/syspass 
+  - chmod 750 /var/www/html/syspass/install-composer.sh
+  - chown -R www-data:www-data /var/www/html/syspass
+  - export HOME=/root
+  - cd /var/www/html/syspass/
+  - sh /var/www/html/syspass/install-composer.sh
+  - php /var/www/html/syspass/composer.phar install --no-dev <<EOF
+  - 'yes'
+  - EOF
+  - a2ensite syspass
+  - systemctl reload apache2
