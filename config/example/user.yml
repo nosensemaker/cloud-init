@@ -1,0 +1,84 @@
+#cloud-config
+hostname: teste
+users:
+  - name: cloudinit 
+    groups: sudo
+    shell: /bin/bash
+    ssh-authorized-keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILILsFnLTU/u6PNNyZO/NGKjKcvTNLDGfKDXmMYQ29e+ manager@gunserver"
+packages:
+  - curl
+  - jq
+  - openssh-server
+
+write_files:
+  - path: /root/create_user_from_syspass.sh
+    content: |
+      #!/bin/bash
+
+      function check_curl {
+        if [[ $? -ne 0 ]]; then
+          echo "Erro ao executar a requisição CURL"
+          exit 1
+        fi
+      }
+
+      USER_NAME=$(curl -k -X POST "https://192.168.17.178/api.php" -H "Content-Type: application/json" -d '{
+        "jsonrpc": "2.0",
+        "method": "account/view",
+        "params": {
+          "authToken": "b837e9ef71ae9b20e634f3aca083ee3f87a2607efad4bc4747c5d9a862926901",
+          "tokenPass": "12345678",
+          "id": 20
+        },
+        "id": 1
+      }' | jq -r '.result.result.login')
+      
+      check_curl
+
+      if [ -z "$USER_NAME" ]; then
+        echo "Nome de usuário não encontrado na API"
+        exit 1
+      fi
+
+      USER_PASS=$(curl -k -X POST "https://192.168.17.178/api.php" -H "Content-Type: application/json" -d '{
+        "jsonrpc": "2.0",
+        "method": "account/viewPass",
+        "params": {
+          "authToken": "b837e9ef71ae9b20e634f3aca083ee3f87a2607efad4bc4747c5d9a862926901",
+          "tokenPass": "12345678",
+          "id": 20
+        },
+        "id": 1
+      }' | jq -r '.result.result.password')
+d '{
+        "jsonrpc": "2.0",
+        "method": "account/viewPass",
+        "params": {
+          "authToken": "b837e9ef71ae9b20e634f3aca083ee3f87a2607efad4bc4747c5d9a862926901",
+          "tokenPass": "12345678",
+          "id": 20
+        },
+        "id": 1
+
+      check_curl
+
+      if [ -z "$USER_PASS" ]; then
+        echo "Senha não encontrada na API"
+        exit 1
+      fi
+
+      useradd -m -s /bin/bash "$USER_NAME"
+      echo "$USER_NAME:$USER_PASS" | chpasswd
+
+      chown -R $USER_NAME:$USER_NAME /home/$USER_NAME
+
+      usermod -aG sudo "$USER_NAME"
+    permissions: '0755'
+
+ssh_pwauth: true
+
+runcmd:
+  - chmod +x /root/create_user_from_syspass.sh
+  - /root/create_user_from_syspass.sh | echo "Erro ao rodar o script"
+  - systemctl disable cloud-init
