@@ -10,7 +10,7 @@ Go to Datacenter (proxmox) > Storage > Add > Directory
 Set the configuration: 
 
 - **ID**: snip  
-- **Directory**: snip  
+- **Directory**: /snip  
 - **Content**: Snippets  
 
 ## 2. Install Cloud-Init on **PROXMOX SERVER**
