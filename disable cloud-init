@@ -1,0 +1,10 @@
+Desativando cloud-init
+  $ sudo cloud-init clean
+  $ sudo cloud-init status --wait
+  $ sudo systemctl disable cloud-init
+  $ sudo systemctl disable cloud-config  
+  $ sudo systemctl disable cloud-final
+
+Mascarando
+
+  $ sudo systemctl mask cloud-init
